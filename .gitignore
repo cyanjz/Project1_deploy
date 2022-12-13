@@ -1,4 +1,3 @@
 .idea/
 Inferece/best.onnx
-Inference_test_image.jpg
 test.py
