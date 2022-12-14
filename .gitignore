@@ -1,3 +1,7 @@
 .idea/
 Inferece/best.onnx
 test.py
+*.onnx
+__pycache__/
+actual_cls_mapping
+actual_cls_mapping0

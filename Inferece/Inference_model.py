@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import onnxruntime as ort
+import pickle
 
 
 def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleup=True, stride=32):
@@ -31,7 +32,8 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleu
     im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
     return im, r, (dw, dh)
 
-def Inference_model(w, img):
+
+def inference_model(w, img, cls_mapper, columns):
     session = ort.InferenceSession(w, providers=['CPUExecutionProvider'])
 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -50,5 +52,14 @@ def Inference_model(w, img):
     inname = [i.name for i in session.get_inputs()]
     inp = {inname[0]: im}
     outputs = session.run(outname, inp)[0]
+    outputs = [cls_mapper[str(int(bbox[-2]))] for bbox in outputs]
 
-    return [bbox[-2] for bbox in outputs]
+    result = list()
+    for output in outputs:
+        # columns of DB.
+        # ex) {'0': ['대분류', '모션베드', '헤드', '저상형', '수납형', '헤드'], '1': ['대분류', '팔걸이', '등받이', '다리형태']}
+        cols = columns[output[0]]
+        result.append({cols[i]: output[i] for i in range(len(cols))})
+
+    return result
+
